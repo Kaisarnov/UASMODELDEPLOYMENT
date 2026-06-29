@@ -4,3 +4,4 @@ pandas
 numpy
 joblib
 boto3
+fastapi
