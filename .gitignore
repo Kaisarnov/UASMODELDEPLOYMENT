@@ -1,6 +1,5 @@
 model.pkl
 mlruns/
-*.pkl
 __pycache__/
 venv/
 .ipynb_checkpoints/
