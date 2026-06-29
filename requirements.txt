@@ -5,3 +5,4 @@ numpy
 joblib
 boto3
 fastapi
+gdown
