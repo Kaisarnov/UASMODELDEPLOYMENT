@@ -3,10 +3,18 @@ from pydantic import BaseModel
 import joblib
 import numpy as np
 import pandas as pd
+import gdown
+import os
 
 app = FastAPI(title="Credit Score Prediction API")
 
-model = joblib.load("model.pkl")
+MODEL_PATH = "model.pkl"
+
+if not os.path.exists(MODEL_PATH):
+    url = "https://drive.google.com/uc?id=1yp7BuvXdnf5-Grflsj1isWO9C9bTvJf2"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+model = joblib.load(MODEL_PATH)
 feature_columns = joblib.load("feature_columns.pkl")
 
 @app.get("/")
