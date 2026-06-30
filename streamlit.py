@@ -3,7 +3,15 @@ import pandas as pd
 import numpy as np
 import joblib
 
-model = joblib.load("model.pkl")
+MODEL_PATH = "model.pkl"
+MODEL_ID = "1yp7BuvXdnf5-Grflsj1isWO9C9bTvJf2"
+
+if not os.path.exists(MODEL_PATH):
+    url = f"https://drive.google.com/uc?id={MODEL_ID}"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+model = joblib.load(MODEL_PATH)
+
 feature_columns = joblib.load("feature_columns.pkl")
 encoders = joblib.load("label_encoders.pkl")
 
