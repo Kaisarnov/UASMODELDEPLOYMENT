@@ -2,20 +2,42 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import os
+import gdown
 
 MODEL_PATH = "model.pkl"
 MODEL_ID = "1yp7BuvXdnf5-Grflsj1isWO9C9bTvJf2"
+FEATURE_PATH = "feature_columns.pkl"
+ENCODER_PATH = "label_encoders.pkl"
 
-if not os.path.exists(MODEL_PATH):
-    url = f"https://drive.google.com/uc?id={MODEL_ID}"
-    gdown.download(url, MODEL_PATH, quiet=False)
+@st.cache_resource
+def load_model():
+    if not os.path.exists(MODEL_PATH):
+        url = f"https://drive.google.com/uc?id={MODEL_ID}"
+        gdown.download(url, MODEL_PATH, quiet=False)
 
-model = joblib.load(MODEL_PATH)
+    return joblib.load(MODEL_PATH)
 
-feature_columns = joblib.load("feature_columns.pkl")
-encoders = joblib.load("label_encoders.pkl")
 
-df = pd.read_csv("data_C.csv")
+@st.cache_resource
+def load_features():
+    return joblib.load(FEATURE_PATH)
+
+
+@st.cache_resource
+def load_encoders():
+    return joblib.load(ENCODER_PATH)
+
+
+@st.cache_data
+def load_data():
+    return pd.read_csv("data_C.csv")
+
+
+model = load_model()
+feature_columns = load_features()
+encoders = load_encoders()
+df = load_data()
 
 st.title("Credit Score Prediction System")
 st.write("Enter the required features to predict the credit score")
@@ -26,7 +48,6 @@ inputs = {}
 for col in feature_columns:
 
     if df[col].dtype == "object":
-
         options = df[col].dropna().unique().tolist()
         selected = st.selectbox(col, options)
 
@@ -34,7 +55,6 @@ for col in feature_columns:
 
     else:
         inputs[col] = st.number_input(col, value=float(df[col].mean()))
-
 
 if st.button("Predict Credit Score"):
 
