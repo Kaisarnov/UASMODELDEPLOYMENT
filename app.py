@@ -1,40 +1,37 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+import streamlit as st
 import joblib
-import numpy as np
 import pandas as pd
 import gdown
 import os
 
-app = FastAPI(title="Credit Score Prediction API")
-
 MODEL_PATH = "model.pkl"
+FEATURE_PATH = "feature_columns.pkl"
 
+# download model
 if not os.path.exists(MODEL_PATH):
     url = "https://drive.google.com/uc?id=1yp7BuvXdnf5-Grflsj1isWO9C9bTvJf2"
     gdown.download(url, MODEL_PATH, quiet=False)
 
+# download feature columns (YOU MUST ADD THIS FILE)
+if not os.path.exists(FEATURE_PATH):
+    st.error("feature_columns.pkl missing in deployment")
+    st.stop()
+
 model = joblib.load(MODEL_PATH)
-feature_columns = joblib.load("feature_columns.pkl")
+feature_columns = joblib.load(FEATURE_PATH)
 
-@app.get("/")
-def home():
-    return {
-        "message": "Credit Score Model API is running",
-        "n_features": len(feature_columns)
-    }
+st.title("Credit Score Prediction")
 
+user_input = st.text_input("Enter JSON features")
 
-class InputData(BaseModel):
-    features: dict 
+if st.button("Predict"):
+    try:
+        data = eval(user_input)
+        df = pd.DataFrame([data])
+        df = df.reindex(columns=feature_columns, fill_value=0)
 
-@app.post("/predict")
-def predict(data: InputData):
+        pred = model.predict(df)
+        st.success(f"Prediction: {pred[0]}")
 
-    input_df = pd.DataFrame([data.features])
-    input_df = input_df.reindex(columns=feature_columns, fill_value=0)
-    prediction = model.predict(input_df)
-
-    return {
-        "prediction": int(prediction[0])
-    }
+    except Exception as e:
+        st.error(str(e))
