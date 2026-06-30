@@ -6,3 +6,4 @@ joblib
 boto3
 fastapi
 gdown
+os
