@@ -7,8 +7,11 @@ import gdown
 
 MODEL_PATH = "model.pkl"
 MODEL_ID = "1yp7BuvXdnf5-Grflsj1isWO9C9bTvJf2"
+
 FEATURE_PATH = "feature_columns.pkl"
 ENCODER_PATH = "label_encoders.pkl"
+DATA_PATH = "data_C.csv"
+
 
 @st.cache_resource
 def load_model():
@@ -23,7 +26,6 @@ def load_model():
 def load_features():
     return joblib.load(FEATURE_PATH)
 
-
 @st.cache_resource
 def load_encoders():
     return joblib.load(ENCODER_PATH)
@@ -31,13 +33,14 @@ def load_encoders():
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("data_C.csv")
+    return pd.read_csv(DATA_PATH)
 
 
 model = load_model()
 feature_columns = load_features()
 encoders = load_encoders()
 df = load_data()
+
 
 st.title("Credit Score Prediction System")
 st.write("Enter the required features to predict the credit score")
@@ -47,14 +50,19 @@ inputs = {}
 
 for col in feature_columns:
 
-    if df[col].dtype == "object":
-        options = df[col].dropna().unique().tolist()
+    if col in encoders:
+
+        options = df[col].dropna().astype(str).unique().tolist()
         selected = st.selectbox(col, options)
 
         inputs[col] = encoders[col].transform([selected])[0]
 
     else:
-        inputs[col] = st.number_input(col, value=float(df[col].mean()))
+        numeric_series = pd.to_numeric(df[col], errors="coerce")
+        default_val = float(numeric_series.mean())
+
+        inputs[col] = st.number_input(col, value=default_val)
+
 
 if st.button("Predict Credit Score"):
 
